@@ -125,10 +125,7 @@ strings. Note that you must have Font Lock enabled."
 
   (define-key ruby-mode-map "}" 'ruby-electric-close-curlies)
   (define-key ruby-mode-map ")" 'ruby-electric-close-matching-char)
-  (define-key ruby-mode-map "]" 'ruby-electric-close-matching-char)
-  (define-key ruby-mode-map "\"" 'ruby-electric-close-matching-char)
-  (define-key ruby-mode-map "\'" 'ruby-electric-close-matching-char)
-  (define-key ruby-mode-map "|" 'ruby-electric-close-bar))
+  (define-key ruby-mode-map "]" 'ruby-electric-close-matching-char))
 
 (defun ruby-electric-space (arg)
   (interactive "P")
@@ -194,12 +191,13 @@ strings. Note that you must have Font Lock enabled."
 
 (defun ruby-electric-matching-char(arg)
   (interactive "P")
-  (self-insert-command (prefix-numeric-value arg))
-  (and (ruby-electric-is-last-command-char-expandable-punct-p)
-       (ruby-electric-code-at-point-p)
-       (save-excursion
-         (insert (cdr (assoc last-command-char
-                             ruby-electric-matching-delimeter-alist))))))
+  (if (looking-at (regexp-quote (string last-command-char))) (forward-char 1)
+    (self-insert-command (prefix-numeric-value arg))
+    (and (ruby-electric-is-last-command-char-expandable-punct-p)
+         (ruby-electric-code-at-point-p)
+         (save-excursion
+           (insert (cdr (assoc last-command-char
+                               ruby-electric-matching-delimeter-alist)))))))
 
 (defun ruby-electric-close-matching-char(arg)
   (interactive "P")
@@ -209,18 +207,13 @@ strings. Note that you must have Font Lock enabled."
 
 (defun ruby-electric-bar(arg)
   (interactive "P")
-  (self-insert-command (prefix-numeric-value arg))
-  (and (ruby-electric-is-last-command-char-expandable-punct-p)
-       (ruby-electric-code-at-point-p)
-       (and (save-excursion (re-search-backward ruby-electric-expandable-bar nil t))
-            (= (point) (match-end 0))) ;looking-back is missing on XEmacs
-       (save-excursion
-         (insert "|"))))
-
-(defun ruby-electric-close-bar(arg)
-  (interactive "P")
-  (if (looking-at (string last-command-char))
-      (forward-char 1)
-    (self-insert-command (prefix-numeric-value arg))))
+  (if (looking-at (regexp-quote (string last-command-char))) (forward-char 1)
+    (self-insert-command (prefix-numeric-value arg))
+    (and (ruby-electric-is-last-command-char-expandable-punct-p)
+         (ruby-electric-code-at-point-p)
+         (and (save-excursion (re-search-backward ruby-electric-expandable-bar nil t))
+              (= (point) (match-end 0))) ;looking-back is missing on XEmacs
+         (save-excursion
+           (insert "|")))))
 
 (provide 'ruby-electric)
