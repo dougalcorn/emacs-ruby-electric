@@ -56,6 +56,9 @@
 (defconst ruby-electric-expandable-do-re
   "do\\s-$")
 
+(defconst ruby-electric-empty-block-re
+  "\\s *\n\\s *end")
+
 (defconst ruby-electric-expandable-bar
   "\\s-\\(do\\|{\\)\\s-+|")
 
@@ -152,18 +155,18 @@ strings. Note that you must have Font Lock enabled."
 
 (defun ruby-electric-space-can-be-expanded-p()
   (if (ruby-electric-code-at-point-p)
-      (let* ((ruby-electric-keywords-re
-              (concat ruby-electric-simple-keywords-re "\\s-$"))
-             (ruby-electric-single-keyword-in-line-re
-              (concat "\\s-*" ruby-electric-keywords-re)))
+      (let* ((ruby-electric-keywords-re (concat ruby-electric-simple-keywords-re "\\s-$"))
+             (ruby-electric-single-keyword-in-line-re (concat "\\s-*" ruby-electric-keywords-re)))
         (save-excursion
           (backward-word 1)
-          (or (looking-at ruby-electric-expandable-do-re)
-              (and (looking-at ruby-electric-keywords-re)
-                   (not (string= "do" (match-string 1)))
-                   (progn
-                     (beginning-of-line)
-                     (looking-at ruby-electric-single-keyword-in-line-re))))))))
+          (and (not (progn (save-excursion
+                                 (end-of-line)(looking-at ruby-electric-empty-block-re))))
+               (or (looking-at ruby-electric-expandable-do-re)
+                   (and (looking-at ruby-electric-keywords-re)
+                        (not (string= "do" (match-string 1)))
+                        (progn
+                          (beginning-of-line)
+                          (looking-at ruby-electric-single-keyword-in-line-re)))))))))
 
 
 (defun ruby-electric-curlies(arg)
