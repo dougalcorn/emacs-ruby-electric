@@ -54,7 +54,7 @@
 (require 'ruby-mode)
 
 (defconst ruby-electric-expandable-do-re
-  "do\\s-$")
+  "do\\s-*$")
 
 (defconst ruby-electric-empty-block-re
   "\\s *\n\\s *end")
@@ -122,10 +122,19 @@ strings. Note that you must have Font Lock enabled."
   (define-key ruby-mode-map "\"" 'ruby-electric-matching-char)
   (define-key ruby-mode-map "\'" 'ruby-electric-matching-char)
   (define-key ruby-mode-map "|" 'ruby-electric-bar)
-
+  (define-key ruby-mode-map (kbd "RET") 'ruby-electric-newline)
   (define-key ruby-mode-map "}" 'ruby-electric-close-curlies)
   (define-key ruby-mode-map ")" 'ruby-electric-close-matching-char)
   (define-key ruby-mode-map "]" 'ruby-electric-close-matching-char))
+
+(defun ruby-electric-newline (arg)
+  (interactive "P")
+  (let ((insert (save-excursion
+                  (backward-word 1)
+                  (looking-at ruby-electric-expandable-do-re))))
+    (if insert 
+        (save-excursion (ruby-indent-line t) (newline) (ruby-insert-end)))
+    (newline)))
 
 (defun ruby-electric-space (arg)
   (interactive "P")
